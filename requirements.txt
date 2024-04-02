@@ -1,4 +1,5 @@
 click
+git+https://github.com/altaris/turbo-broccoli
 joblib
 loguru
 matplotlib
@@ -8,4 +9,3 @@ qiskit_qasm3_import
 qiskit-aer-gpu
 seaborn
 tqdm
-turbo-broccoli

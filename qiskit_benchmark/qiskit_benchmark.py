@@ -100,24 +100,22 @@ def run(
     progress = tqdm(everything, desc="Benchmarking", total=len(everything))
     guard = tb.GuardedBlockHandler(output_file)
     simulator = AerSimulator(method=method, device=device)
-    for _, (n_qbits, depth, n) in guard(progress, result_type="list"):
+    for _, (n_qbits, depth, n) in guard(progress, result_type="dict"):
         progress.set_postfix({"n_qbits": n_qbits, "depth": depth, "n": n})
         circuit = qasm3.load(circuits_dir / f"{n_qbits}_{depth}_{n}.qasm3")
         circuit = qiskit.transpile(circuit, simulator)
         start = datetime.now()
         simulator.run(circuit, shots=n_shots).result()
         time_taken = (datetime.now() - start) / timedelta(seconds=1)
-        guard.result.append(
-            {
-                "depth": depth,
-                "device": device,
-                "method": method,
-                "n_qbits": n_qbits,
-                "n_shots": n_shots,
-                "time_taken": time_taken,
-            }
-        )
-    return guard.result
+        guard.result[(n_qbits, depth, n)] = {
+            "depth": depth,
+            "device": device,
+            "method": method,
+            "n_qbits": n_qbits,
+            "n_shots": n_shots,
+            "time_taken": time_taken,
+        }
+    return list(guard.result.values())
 
 
 def make_result_dataframe(results: list[dict[str, Any]]) -> pd.DataFrame:
