@@ -1,6 +1,9 @@
 click
 loguru
+matplotlib
+pandas
 qiskit
 qiskit-aer-gpu
+seaborn
 tqdm
 turbo-broccoli

@@ -7,7 +7,9 @@ from typing import Any
 
 import pandas as pd
 import qiskit
+import seaborn as sns
 import turbo_broccoli as tb
+from matplotlib.axes import Axes
 from qiskit import qasm3
 from qiskit.circuit.random import random_circuit
 from qiskit_aer import AerSimulator
@@ -104,3 +106,18 @@ def make_result_dataframe(
             df.loc[len(df)] = {k: r[k] for k in df.columns}
         guard.result = df
     return guard.result
+
+
+def plot_results(df: pd.DataFrame, output_file: Path) -> Axes:
+    """
+    Plots the results. This method is guarded.
+
+    Args:
+        df (pd.DataFrame):
+    """
+    df = df.groupby(["n_qbits", "depth"]).mean().reset_index()
+    df = df.pivot(index="n_qbits", columns="depth", values="time_taken")
+    plot = sns.heatmap(df, annot=True, fmt=".2f")
+    plot.set(title="Execution time (s)")
+    plot.get_figure().savefig(str(output_file))
+    return plot

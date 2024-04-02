@@ -113,9 +113,9 @@ def main(
     method: str,
     device: str,
 ):
-    """Entrypoint."""
+    """Entrypoint"""
     # pylint: disable=import-outside-toplevel
-    from .qiskit_benchmark import make_result_dataframe, run
+    from .qiskit_benchmark import make_result_dataframe, plot_results, run
 
     setup_logging(logging_level)
     if not output_dir.exists():
@@ -130,6 +130,7 @@ def main(
         device=device,
     )
     df = make_result_dataframe(output_dir / "results.csv", results)
+    plot_results(df, output_dir / "execution_time.png")
 
 
 # pylint: disable=no-value-for-parameter
