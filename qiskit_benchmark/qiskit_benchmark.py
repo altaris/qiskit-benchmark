@@ -41,14 +41,15 @@ def generate_random_circuits(
             depth, **NOT** the total number of circuits.
     """
 
+    def _filepath(q: int, d: int, n: int) -> Path:
+        return output_dir / f"{q}_{d}_{n}.qasm3"
+
     def _generate(q: int, d: int, n: int) -> None:
         """Generates a single circuit and saves it to a file"""
         circuit = random_circuit(
             num_qubits=q, depth=d, measure=True, conditional=True
         )
-        with (output_dir / f"{q}_{d}_{n}.qasm3").open(
-            "w", encoding="utf-8"
-        ) as fp:
+        with _filepath(q, d, n).open("w", encoding="utf-8") as fp:
             qasm3.dump(circuit, fp)
 
     executor = Parallel(n_jobs=n_jobs, verbose=1)
@@ -57,7 +58,11 @@ def generate_random_circuits(
         range(depth_range[0], depth_range[1] + 1),
         range(1, n_circuits + 1),
     )
-    executor(delayed(_generate)(q, d, n) for q, d, n in everything)
+    executor(
+        delayed(_generate)(q, d, n)
+        for q, d, n in everything
+        if not _filepath(q, d, n).is_file()
+    )
 
 
 # pylint: disable=too-many-locals
