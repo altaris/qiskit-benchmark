@@ -4,7 +4,8 @@
 [![License](https://img.shields.io/badge/license-MIT-green)](https://choosealicense.com/licenses/mit/)
 [![Code style](https://img.shields.io/badge/style-black-black)](https://pypi.org/project/black)
 
-
+A simple qiskit benchmark that runs random circuits and measures the time and
+memory usage.
 
 ## Contributing
 

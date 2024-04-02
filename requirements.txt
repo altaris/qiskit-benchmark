@@ -1,2 +1,6 @@
 click
 loguru
+qiskit
+qiskit-aer-gpu
+tqdm
+turbo-broccoli
