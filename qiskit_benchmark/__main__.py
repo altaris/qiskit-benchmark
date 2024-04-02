@@ -115,13 +115,29 @@ def main(
 ):
     """Entrypoint"""
     # pylint: disable=import-outside-toplevel
-    from .qiskit_benchmark import make_result_dataframe, plot_results, run
+    from .qiskit_benchmark import (
+        generate_random_circuits,
+        make_result_dataframe,
+        plot_results,
+        run,
+    )
 
     setup_logging(logging_level)
-    if not output_dir.exists():
-        output_dir.mkdir(parents=True)
+
+    logging.info("Generating circuits")
+    (output_dir / "circuits").mkdir(parents=True, exist_ok=True)
+    generate_random_circuits(
+        output_dir=output_dir / "circuits",
+        qbits_range=(min_qbits, max_qbits),
+        depth_range=(min_depth, max_depth),
+        n_circuits=n_circuits,
+    )
+
+    logging.info("Running circuits")
+    (output_dir / "data").mkdir(parents=True, exist_ok=True)
     results = run(
         output_file=output_dir / "data" / "results.json",
+        circuits_dir=output_dir / "circuits",
         qbits_range=(min_qbits, max_qbits),
         depth_range=(min_depth, max_depth),
         n_shots=n_shots,
@@ -129,6 +145,8 @@ def main(
         method=method,
         device=device,
     )
+
+    logging.info("Post-processing & plotting")
     df = make_result_dataframe(results)
     df.to_csv(output_dir / "results.csv", index=False)
     plot_results(df, output_dir / "execution_time.png")

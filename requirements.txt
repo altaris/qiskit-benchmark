@@ -1,8 +1,10 @@
 click
+joblib
 loguru
 matplotlib
 pandas
 qiskit
+qiskit_qasm3_import
 qiskit-aer-gpu
 seaborn
 tqdm
