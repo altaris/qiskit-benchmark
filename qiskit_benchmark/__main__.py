@@ -129,7 +129,8 @@ def main(
         method=method,
         device=device,
     )
-    df = make_result_dataframe(output_dir / "results.csv", results)
+    df = make_result_dataframe(results)
+    df.to_csv(output_dir / "results.csv", index=False)
     plot_results(df, output_dir / "execution_time.png")
 
 

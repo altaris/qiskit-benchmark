@@ -79,11 +79,9 @@ def run(
     return guard.result
 
 
-def make_result_dataframe(
-    output_file: Path, results: list[dict[str, Any]]
-) -> pd.DataFrame:
+def make_result_dataframe(results: list[dict[str, Any]]) -> pd.DataFrame:
     """
-    Makes a dataframe out of the results provided by `run`. This method is
+    Makes a dataframe out of the results provided by `run`. This method is not
     guarded.
 
     Args:
@@ -93,19 +91,16 @@ def make_result_dataframe(
     Returns:
         Pandas dataframe
     """
-    guard = tb.GuardedBlockHandler(output_file)
-    for _ in guard:
-        df = pd.DataFrame(
-            columns=[
-                "n_qbits",
-                "depth",
-                "time_taken",
-            ]
-        )
-        for r in tqdm(results, desc="Post-processing"):
-            df.loc[len(df)] = {k: r[k] for k in df.columns}
-        guard.result = df
-    return guard.result
+    df = pd.DataFrame(
+        columns=[
+            "n_qbits",
+            "depth",
+            "time_taken",
+        ]
+    )
+    for r in tqdm(results, desc="Post-processing"):
+        df.loc[len(df)] = {k: r[k] for k in df.columns}
+    return df
 
 
 def plot_results(df: pd.DataFrame, output_file: Path) -> Axes:
