@@ -10,7 +10,8 @@ import qiskit
 import seaborn as sns
 import turbo_broccoli as tb
 from matplotlib.axes import Axes
-from qiskit import qasm3
+
+# from qiskit import qasm3
 from qiskit.circuit.random import random_circuit
 from qiskit_aer import AerSimulator
 from tqdm import tqdm
@@ -49,34 +50,29 @@ def run(
         )
     )
     progress = tqdm(everything, desc="Benchmarking", total=len(everything))
-    guard = tb.GuardedBlockHandler(
-        output_file, artifact_path=output_file.parent / "data"
-    )
+    guard = tb.GuardedBlockHandler(output_file)
     simulator = AerSimulator(method=method, device=device)
-    for _, (n_qbits, depth, n) in guard(progress, result_type="list"):
+    for _, (n_qbits, depth, n) in guard(progress, result_type="dict"):
         progress.set_postfix({"n_qbits": n_qbits, "depth": depth, "n": n})
         circuit = random_circuit(
             num_qubits=n_qbits, depth=depth, measure=True, conditional=True
         )
-        start = datetime.now()
         circuit = qiskit.transpile(circuit, simulator)
-        result = simulator.run(circuit, shots=n_shots).result()
+        start = datetime.now()
+        # result = simulator.run(circuit, shots=n_shots).result()
+        simulator.run(circuit, shots=n_shots).result()
         time_taken = (datetime.now() - start) / timedelta(seconds=1)
-        guard.result.append(
-            tb.EmbeddedDict(
-                {
-                    "circuit": qasm3.dumps(circuit),
-                    "depth": depth,
-                    "device": device,
-                    "method": method,
-                    "n_qbits": n_qbits,
-                    "n_shots": n_shots,
-                    "results": result.to_dict(),
-                    "time_taken": time_taken,
-                }
-            )
-        )
-    return guard.result
+        guard.result[f"{n_qbits}_{depth}_{n}"] = {
+            # "circuit": qasm3.dumps(circuit),
+            "depth": depth,
+            "device": device,
+            "method": method,
+            "n_qbits": n_qbits,
+            "n_shots": n_shots,
+            # "results": result.to_dict(),
+            "time_taken": time_taken,
+        }
+    return list(guard.result.values())
 
 
 def make_result_dataframe(results: list[dict[str, Any]]) -> pd.DataFrame:
