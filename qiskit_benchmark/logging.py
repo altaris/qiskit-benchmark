@@ -1,25 +1,11 @@
 """Everything related to logging"""
 
 import sys
-from typing import Literal
 
 from loguru import logger as logging
 
 
-def setup_logging(
-    logging_level: Literal[
-        "critical",
-        "CRITICAL",
-        "debug",
-        "DEBUG",
-        "error",
-        "ERROR",
-        "info",
-        "INFO",
-        "warning",
-        "WARNING",
-    ]
-) -> None:
+def setup_logging(level: str) -> None:
     """
     Sets logging format and level. The format is
 
@@ -31,9 +17,17 @@ def setup_logging(
         2022-02-01 10:42:12,488 [CRITICAL] We're out of beans!
 
     Args:
-        logging_level (str): Either 'critical', 'debug', 'error', 'info', or
+        level (str): Either 'critical', 'debug', 'error', 'info', or
             'warning', case insensitive.
     """
+    if level.lower() not in [
+        "critical",
+        "debug",
+        "error",
+        "info",
+        "warning",
+    ]:
+        level = "info"
     logging.remove()
     logging.add(
         sys.stderr,
@@ -42,7 +36,7 @@ def setup_logging(
             + "[<level>{level: <8}</level>] "
             + "<level>{message}</level>"
         ),
-        level=logging_level.upper(),
+        level=level.upper(),
         enqueue=True,
         colorize=True,
     )
