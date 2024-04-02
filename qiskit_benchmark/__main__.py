@@ -121,7 +121,7 @@ def main(
     if not output_dir.exists():
         output_dir.mkdir(parents=True)
     results = run(
-        output_file=output_dir / "results.json",
+        output_file=output_dir / "data" / "results.json",
         qbits_range=(min_qbits, max_qbits),
         depth_range=(min_depth, max_depth),
         n_shots=n_shots,
