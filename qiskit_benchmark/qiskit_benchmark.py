@@ -1,5 +1,6 @@
 """Main module"""
 
+from datetime import datetime, timedelta
 from itertools import product
 from pathlib import Path
 from typing import Any
@@ -46,25 +47,30 @@ def run(
         )
     )
     progress = tqdm(everything, desc="Benchmarking", total=len(everything))
-    guard = tb.GuardedBlockHandler(output_file)
+    guard = tb.GuardedBlockHandler(
+        output_file, artifact_path=output_file.parent / "data"
+    )
     simulator = AerSimulator(method=method, device=device)
     for _, (n_qbits, depth, n) in guard(progress, result_type="list"):
         progress.set_postfix({"n_qbits": n_qbits, "depth": depth, "n": n})
         circuit = random_circuit(
             num_qubits=n_qbits, depth=depth, measure=True, conditional=True
         )
+        start = datetime.now()
         circuit = qiskit.transpile(circuit, simulator)
         result = simulator.run(circuit, shots=n_shots).result()
+        time_taken = (datetime.now() - start) / timedelta(seconds=1)
         guard.result.append(
             tb.EmbeddedDict(
                 {
-                    "n_qbits": n_qbits,
-                    "depth": depth,
-                    "time_taken": result.time_taken,
-                    "max_memory_mb": result.metadata["max_memory_mb"],
-                    "max_gpu_memory_mb": result.metadata["max_gpu_memory_mb"],
                     "circuit": qasm3.dumps(circuit),
+                    "depth": depth,
+                    "device": device,
+                    "method": method,
+                    "n_qbits": n_qbits,
+                    "n_shots": n_shots,
                     "results": result.to_dict(),
+                    "time_taken": time_taken,
                 }
             )
         )
@@ -92,11 +98,9 @@ def make_result_dataframe(
                 "n_qbits",
                 "depth",
                 "time_taken",
-                "max_memory_mb",
-                "max_gpu_memory_mb",
             ]
         )
         for r in tqdm(results, desc="Post-processing"):
-            df.iloc[len(df)] = {k: r[k] for k in df.columns}
+            df.loc[len(df)] = {k: r[k] for k in df.columns}
         guard.result = df
     return guard.result
