@@ -5,12 +5,12 @@ from itertools import product
 from pathlib import Path
 from typing import Any
 
+import matplotlib.pyplot as plt
 import pandas as pd
 import qiskit
 import seaborn as sns
 import turbo_broccoli as tb
 from joblib import Parallel, delayed
-from matplotlib.axes import Axes
 from qiskit import qasm3
 from qiskit.circuit.random import random_circuit
 from qiskit_aer import AerSimulator
@@ -107,19 +107,26 @@ def run(
     simulator = AerSimulator(method=method, device=device)
     for _, (n_qbits, depth, n) in guard(progress, result_type="dict"):
         progress.set_postfix({"n_qbits": n_qbits, "depth": depth, "n": n})
-        circuit = qasm3.load(circuits_dir / f"{n_qbits}_{depth}_{n}.qasm3")
-        circuit = qiskit.transpile(circuit, simulator)
-        start = datetime.now()
-        simulator.run(circuit, shots=n_shots).result()
-        time_taken = (datetime.now() - start) / timedelta(seconds=1)
-        guard.result[(n_qbits, depth, n)] = {
+        data = {
             "depth": depth,
             "device": device,
             "method": method,
             "n_qbits": n_qbits,
             "n_shots": n_shots,
-            "time_taken": time_taken,
         }
+        start = datetime.now()
+        circuit = qasm3.load(circuits_dir / f"{n_qbits}_{depth}_{n}.qasm3")
+        data["load_time"] = (datetime.now() - start) / timedelta(seconds=1)
+        start = datetime.now()
+        circuit = qiskit.transpile(circuit, simulator)
+        data["transpile_time"] = (datetime.now() - start) / timedelta(
+            seconds=1
+        )
+        start = datetime.now()
+        result = simulator.run(circuit, shots=n_shots).result()
+        data["run_time"] = (datetime.now() - start) / timedelta(seconds=1)
+        data["result"] = result.to_dict()
+        guard.result[(n_qbits, depth, n)] = tb.EmbeddedDict(data)
     return list(guard.result.values())
 
 
@@ -135,22 +142,35 @@ def make_result_dataframe(results: list[dict[str, Any]]) -> pd.DataFrame:
     Returns:
         Pandas dataframe
     """
-    df = pd.DataFrame(columns=["n_qbits", "depth", "time_taken"])
+    df = pd.DataFrame(
+        columns=["n_qbits", "depth", "load_time", "transpile_time", "run_time"]
+    )
     for r in tqdm(results, desc="Post-processing"):
         df.loc[len(df)] = {k: r[k] for k in df.columns}
     return df
 
 
-def plot_results(df: pd.DataFrame, output_file: Path) -> Axes:
+def plot_results(df: pd.DataFrame, output_dir: Path):
     """
     Plots the results. This method is guarded.
 
     Args:
         df (pd.DataFrame):
+        output_dir (Path):
     """
+
     df = df.groupby(["n_qbits", "depth"]).mean().reset_index()
-    df = df.pivot(index="n_qbits", columns="depth", values="time_taken")
-    plot = sns.heatmap(df, annot=True, fmt=".2f")
-    plot.set(title="Execution time (s)")
-    plot.get_figure().savefig(str(output_file))
-    return plot
+
+    def _plot(key: str, title: str, filename: str):
+        plot = sns.heatmap(
+            df.pivot(index="n_qbits", columns="depth", values=key),
+            annot=True,
+            fmt=".2f",
+        )
+        plot.set(title=title)
+        plot.get_figure().savefig(output_dir / filename)
+        plt.clf()
+
+    _plot("load_time", "QASM3 file loading time (s)", "load_time.png")
+    _plot("transpile_time", "Transpile time (s)", "transpile_time.png")
+    _plot("run_time", "Execution time (s)", "execution_time.png")

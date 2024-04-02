@@ -20,39 +20,19 @@ from .logging import setup_logging
     ),
 )
 @click.option(
-    "-mq",
-    "--min-qbits",
-    default=1,
-    help="Minimum number of qubits",
-    type=int,
+    "-mq", "--min-qbits", default=1, help="Minimum number of qubits", type=int
 )
 @click.option(
-    "-Mq",
-    "--max-qbits",
-    default=10,
-    help="Maximum number of qubits",
-    type=int,
+    "-Mq", "--max-qbits", default=10, help="Maximum number of qubits", type=int
 )
 @click.option(
-    "-md",
-    "--min-depth",
-    default=1,
-    help="Minimum circuit depth",
-    type=int,
+    "-md", "--min-depth", default=1, help="Minimum circuit depth", type=int
 )
 @click.option(
-    "-Md",
-    "--max-depth",
-    default=10,
-    help="Maximum circuit depth",
-    type=int,
+    "-Md", "--max-depth", default=10, help="Maximum circuit depth", type=int
 )
 @click.option(
-    "-ns",
-    "--n-shots",
-    default=100,
-    help="Maximum circuit depth",
-    type=int,
+    "-ns", "--n-shots", default=100, help="Maximum circuit depth", type=int
 )
 @click.option(
     "-nc",
@@ -149,7 +129,7 @@ def main(
     logging.info("Post-processing & plotting")
     df = make_result_dataframe(results)
     df.to_csv(output_dir / "results.csv", index=False)
-    plot_results(df, output_dir / "execution_time.png")
+    plot_results(df, output_dir)
 
 
 # pylint: disable=no-value-for-parameter
