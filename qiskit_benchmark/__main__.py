@@ -1,5 +1,7 @@
 """CLI module"""
 
+# pylint: disable=import-outside-toplevel
+
 import os
 from pathlib import Path
 
@@ -13,32 +15,58 @@ from .logging import setup_logging
 @click.option(
     "--logging-level",
     default=os.getenv("LOGGING_LEVEL", "info"),
-    help=("Logging level, case insensitive"),
+    help=(
+        "Logging level, case insensitive. Defaults to 'info'. Can also be set "
+        "using the LOGGING_LEVEL environment variable."
+    ),
     type=click.Choice(
         ["critical", "debug", "error", "info", "warning"],
         case_sensitive=False,
     ),
 )
 @click.option(
-    "-mq", "--min-qbits", default=1, help="Minimum number of qubits", type=int
+    "-mq",
+    "--min-qbits",
+    default=1,
+    help="Minimum number of qubits. Defaults to 1.",
+    type=int,
 )
 @click.option(
-    "-Mq", "--max-qbits", default=10, help="Maximum number of qubits", type=int
+    "-Mq",
+    "--max-qbits",
+    default=10,
+    help="Maximum number of qubits. Defaults to 10.",
+    type=int,
 )
 @click.option(
-    "-md", "--min-depth", default=1, help="Minimum circuit depth", type=int
+    "-md",
+    "--min-depth",
+    default=1,
+    help="Minimum circuit depth. Defaults to 1.",
+    type=int,
 )
 @click.option(
-    "-Md", "--max-depth", default=10, help="Maximum circuit depth", type=int
+    "-Md",
+    "--max-depth",
+    default=10,
+    help="Maximum circuit depth. Defaults to 10.",
+    type=int,
 )
 @click.option(
-    "-ns", "--n-shots", default=100, help="Maximum circuit depth", type=int
+    "-ns",
+    "--n-shots",
+    default=100,
+    help="Number of times a given circuit is to be run. Defaults to 100.",
+    type=int,
 )
 @click.option(
     "-nc",
     "--n-circuits",
     default=10,
-    help="Number of circuits to generate for a given number of qubits and depth",
+    help=(
+        "Number of circuits to generate for a given number of qubits and "
+        "depth. Defaults to 10."
+    ),
     type=int,
 )
 @click.option(
@@ -48,6 +76,7 @@ from .logging import setup_logging
     help=(
         "Simulator method, see "
         "https://qiskit.github.io/qiskit-aer/stubs/qiskit_aer.AerSimulator.html"
+        " . Defaults to 'statevector'."
     ),
     type=click.Choice(
         [
@@ -67,7 +96,7 @@ from .logging import setup_logging
     "-d",
     "--device",
     default="CPU",
-    help="Device to use for simulation",
+    help="Device to use for simulation. Defaults to 'CPU'.",
     type=str,
 )
 @click.argument(
@@ -93,8 +122,7 @@ def main(
     method: str,
     device: str,
 ):
-    """Entrypoint"""
-    # pylint: disable=import-outside-toplevel
+    """Simple qiskit benchmarking utility"""
     from .qiskit_benchmark import (
         generate_random_circuits,
         make_result_dataframe,
