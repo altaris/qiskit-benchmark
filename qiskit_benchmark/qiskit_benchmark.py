@@ -162,11 +162,10 @@ def plot_results(df: pd.DataFrame, output_dir: Path):
     df = df.groupby(["n_qbits", "depth"]).mean().reset_index()
 
     def _plot(key: str, title: str, filename: str):
-        plot = sns.heatmap(
-            df.pivot(index="n_qbits", columns="depth", values=key),
-            annot=True,
-            fmt=".2f",
-        )
+        d = df.pivot(index="n_qbits", columns="depth", values=key)
+        h, w = d.shape[0] * 0.5, d.shape[1]
+        _, ax = plt.subplots(figsize=(w, h))
+        plot = sns.heatmap(d, annot=True, fmt=".2f", ax=ax)
         plot.set(title=title)
         plot.get_figure().savefig(output_dir / filename)
         plt.clf()
